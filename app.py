@@ -2,16 +2,22 @@ from flask import Flask, request, render_template,redirect,url_for,session
 import requests
 # import pandas as pd
 # import json
+import cx_Oracle
+from cx_Oracle import Connection, SessionPool
+from flask_sqlalchemy import SQLAlchemy
+import config as conf
 
 app = Flask(__name__, static_folder='static', static_url_path='/')
 app.secret_key = 'some_secret_key_tayyip_is_should_know'
 
+#login controller
 @app.before_request
 def check_login():
     allowed_routes = ["login", "static"]  # Giriş yapmadan erişime izin verilen sayfalar
     if request.endpoint not in allowed_routes and "username" not in session:
         return redirect(url_for("login"))
-    
+
+#home and page func...    
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -37,24 +43,17 @@ def home():
                 return render_template('index.html', error=error)
     
     return render_template("index.html")
-    
 
-users = {
-    "tayyip": "1",
-    "user2": "2"
-}
-
+#login
 @app.route('/login',methods=['GET', 'POST'])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         
-        if username in users and users[username] == password:
-            # Kullanıcı doğrulandı, ana sayfaya yönlendir
+        if verify_user(username, password):
             session["username"] = username
-            username = request.form["username"]
-            return redirect(url_for('home'))
+            return redirect(url_for("home"))
         else:
             error = "Kullanıcı adı veya şifre hatalı."
             return render_template("login.html", error=error)
@@ -62,17 +61,72 @@ def login():
     return render_template("login.html")
 
 
+# Connection pooling
+def create_connection_pool():
+    try:
+        pool = SessionPool(
+            user=conf.db_user,
+            password=conf.db_password,
+            dsn=conf.db_dsn,
+            min=conf.pool_min,
+            max=conf.pool_max,
+            increment=conf.pool_increment,
+            threaded=conf.pool_threaded,
+        )
+        return pool
+    except Exception as e:
+        print("Bağlantı havuzu oluşturulurken hata oluştu:", e)
+        return None
+
+# Connection pooling
+connection_pool = create_connection_pool()
+
+def verify_user(username, password):
+    try:
+        conn = connection_pool.acquire()
+        cursor = conn.cursor()
+
+        query = "SELECT username FROM users WHERE username = :username AND password = :password"
+        cursor.execute(query, (username, password))
+        result = cursor.fetchone()
+
+        cursor.close()
+        connection_pool.release(conn)
+        
+        if result:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print("Veritabanına bağlanırken hata oluştu:", e)
+        return False
+
+def verify_db_connection():
+    if connection_pool:
+        return "Bağlantı havuzu başarıyla oluşturuldu."
+    else:
+        return "Bağlantı havuzu oluşturulurken hata oluştu."
+
+@app.route("/verifydb")
+def verify_db():
+    if verify_db_connection():
+        print ("Veritabanına başarıyla bağlandı.")
+    else:
+        print( "Veritabanına bağlanırken hata oluştu.")
+    
+# Send username to layout
 @app.context_processor
 def inject_user():
     username = session.get("username")
     return dict(username=username)
 
-
+#logout
 @app.route("/logout")
 def logout():
     session.pop("username", None)
     return redirect(url_for("login"))
 
+#error handler
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template("404.html") # veya başka bir sayfa
