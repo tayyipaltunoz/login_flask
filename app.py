@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template,redirect,url_for,session
 import requests
-# import pandas as pd
+import pandas as pd
 # import json
 import cx_Oracle
 from cx_Oracle import Connection, SessionPool
@@ -103,17 +103,10 @@ def verify_user(username, password):
 
 def verify_db_connection():
     if connection_pool:
-        return "Bağlantı havuzu başarıyla oluşturuldu."
+        print ("Bağlantı havuzu başarıyla oluşturuldu.")
     else:
-        return "Bağlantı havuzu oluşturulurken hata oluştu."
+        print ("Bağlantı havuzu oluşturulurken hata oluştu.")
 
-@app.route("/verifydb")
-def verify_db():
-    if verify_db_connection():
-        print ("Veritabanına başarıyla bağlandı.")
-    else:
-        print( "Veritabanına bağlanırken hata oluştu.")
-    
 # Send username to layout
 @app.context_processor
 def inject_user():
@@ -130,6 +123,30 @@ def logout():
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template("404.html") # veya başka bir sayfa
+
+
+conn = connection_pool.acquire()
+@app.route("/history", methods=["GET","POST"])
+def history():
+    if request.method =="POST":  
+        user_input = request.form.get("user_input")
+        sql = "SELECT * FROM employees WHERE department_id = :user_input ORDER BY hire_date DESC FETCH FIRST 10 ROWS ONLY"
+        
+        try:
+            # Parametreleri kullanarak SQL sorgusunu çalıştırın
+            data = pd.read_sql(sql, conn, params={"user_input": user_input})
+            data_html = data.to_html(classes="table table-bordered table-striped table-hover", index=False)
+            return render_template("history.html", data_html=data_html)
+        
+        except Exception as e:
+            # Hata durumunu ele al
+            return render_template("error.html", error_message=str(e))
+    
+    return render_template("history.html")
+
+
+
+
 
 
 if __name__ == '__main__':
