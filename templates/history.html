@@ -6,9 +6,9 @@
 <!-- Topbar Search -->
 <form method="POST"
     class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-10 navbar-search">
-    <div class="input-group">
+    <div class="input-group" >
         <input class="form-control border-primary" type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-            aria-label="Search" aria-describedby="basic-addon2" name="user_input" id="user_input">
+            aria-label="Search" aria-describedby="basic-addon2" name="user_input" id="user_input" >
         <div class="input-group-append">
             <button class="btn btn-primary" type="submit">
                 <i class="fas fa-search fa-sm"></i>
@@ -17,12 +17,13 @@
     </div>
 </form>
 <br><br>
+
 <!-- Topbar Navbar -->
 
-<!-- <h3>Data History</h3> -->
-<!-- Verileri burada görüntüleme -->
+<!-- data table -->
+<div style="font-size: small;">
 {{ data_html | safe }}
-
+</div>
 
 <!-- Body end.. -->
 {%endblock%}

@@ -13,7 +13,7 @@ app.secret_key = 'some_secret_key_tayyip_is_should_know'
 #login controller
 @app.before_request
 def check_login():
-    allowed_routes = ["login", "static"]  # Giriş yapmadan erişime izin verilen sayfalar
+    allowed_routes = ["login", "static"] 
     if request.endpoint not in allowed_routes and "username" not in session:
         return redirect(url_for("login"))
 
@@ -21,21 +21,14 @@ def check_login():
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        # Kullanıcının girdiği değeri alalım
-        query = request.form['query'].upper()
-        
+        query = request.form['query'].upper()       
         if query == "" :
             pass
         else :
-            # REST API'ye istek gönderelim
             # response = requests.get('https://fakestoreapi.com/products/' + query)
-            response = requests.get('https://dummyjson.com/products/' + query)
-            
-            # API yanıtını bir değişkene ata
+            response = requests.get('https://dummyjson.com/products/' + query)            
             try:
                 result = response.json()
-
-                # Sonucu bir Flask şablonunda kullanmak için değişkeni geri döndür
                 return render_template('index.html', result=result)
             except Exception as ex:
                 print(f'Sonuç bulunamadı. {ex}')
@@ -122,10 +115,11 @@ def logout():
 #error handler
 @app.errorhandler(404)
 def page_not_found(error):
-    return render_template("404.html") # veya başka bir sayfa
+    return render_template("404.html") 
 
 
 conn = connection_pool.acquire()
+#history page
 @app.route("/history", methods=["GET","POST"])
 def history():
     if request.method =="POST":  
@@ -133,13 +127,11 @@ def history():
         sql = "SELECT * FROM employees WHERE department_id = :user_input ORDER BY hire_date DESC FETCH FIRST 10 ROWS ONLY"
         
         try:
-            # Parametreleri kullanarak SQL sorgusunu çalıştırın
             data = pd.read_sql(sql, conn, params={"user_input": user_input})
             data_html = data.to_html(classes="table table-bordered table-striped table-hover", index=False)
             return render_template("history.html", data_html=data_html)
         
         except Exception as e:
-            # Hata durumunu ele al
             return render_template("error.html", error_message=str(e))
     
     return render_template("history.html")
