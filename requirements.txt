@@ -1,2 +1,5 @@
 flask
 requests
+pandas
+cx_Oracle
+flask_sqlalchemy

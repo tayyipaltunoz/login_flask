@@ -5,7 +5,7 @@ import pandas as pd
 import cx_Oracle
 from cx_Oracle import Connection, SessionPool
 from flask_sqlalchemy import SQLAlchemy
-import config as conf
+import Config.config as conf
 
 app = Flask(__name__, static_folder='static', static_url_path='/')
 app.secret_key = 'some_secret_key_tayyip_is_should_know'
@@ -25,8 +25,8 @@ def home():
         if query == "" :
             pass
         else :
-            # response = requests.get('https://fakestoreapi.com/products/' + query)
-            response = requests.get('https://dummyjson.com/products/' + query)            
+            api = conf.search_api
+            response = requests.get( api + query)            
             try:
                 result = response.json()
                 return render_template('index.html', result=result)
@@ -79,7 +79,7 @@ def verify_user(username, password):
         conn = connection_pool.acquire()
         cursor = conn.cursor()
 
-        query = "SELECT username FROM users WHERE username = :username AND password = :password"
+        query = conf.user_sql
         cursor.execute(query, (username, password))
         result = cursor.fetchone()
 
@@ -124,7 +124,7 @@ conn = connection_pool.acquire()
 def history():
     if request.method =="POST":  
         user_input = request.form.get("user_input")
-        sql = "SELECT * FROM employees WHERE department_id = :user_input ORDER BY hire_date DESC FETCH FIRST 10 ROWS ONLY"
+        sql = conf.history_sql
         
         try:
             data = pd.read_sql(sql, conn, params={"user_input": user_input})
@@ -135,8 +135,6 @@ def history():
             return render_template("error.html", error_message=str(e))
     
     return render_template("history.html")
-
-
 
 
 
