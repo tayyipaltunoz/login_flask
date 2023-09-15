@@ -44,4 +44,5 @@ EXPOSE 5000
 # CMD exec /bin/sh -c "trap : TERM INT; (while true; do sleep 1000; done) & wait"
 ENTRYPOINT python3 app.py
 
-#docker run --name webapp -p 5000:5000 -v /root/login_flask/Config:/app/Config webapp:latest
+#docker build -t blackchainweb .
+#docker run --name webapp -p 5000:5000 -v /root/login_flask/Config:/app/Config blackchainweb:latest

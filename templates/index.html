@@ -20,10 +20,12 @@
         </div>
      
     {%else%}
-        <div class="alert alert-primary " role="alert" style="height: 80%;">
-            {{error}} Lorem ipsum dolor sit, amet consectetur adipisicing elit. Excepturi ad est impedit cupiditate expedita explicabo a molestias tempora accusamus minima quas labore, provident porro? Deserunt itaque illo aliquid nostrum magni.
-        </div>
-
+        {%if error%}
+            <div class="alert alert-primary " role="alert" style="height: 80%; width: 50%;">
+                {{error}} 
+            </div>
+        {%endif%}
+        <p style="margin-left: 25%; font-size: small;">TCKN, YKN, VKN ve PASAPORT bilgisi girerek sorgulama yapabilirsiniz.</p>
     {%endif%}
 </div>
 
